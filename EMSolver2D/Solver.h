@@ -1,11 +1,6 @@
 ﻿#pragma once
 #include <cmath>
 #include <vector>
-// Ex,Ey,Hx,Hy -> macierze o wymiarach symulacji
-// eps -> macierz okreslajaca wzgl�dn� przenikalnosc dielektryczna w kazdym punkcie przestrzeni.
-// sigma -> macierz okre�laj�ca przewodno�� elektyczn� w ka�dym punkcji przestrzeni. (do symulowania stratnych materia��w)
-// funkcja opisujaca zrodlo
-// warunki brzegowe - okreslanie i obliczanie. PML, PEC, przenikalnosc dielektryczna
 
 using namespace System;
 using namespace System::Drawing;
