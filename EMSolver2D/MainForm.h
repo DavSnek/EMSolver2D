@@ -1,5 +1,6 @@
 #pragma once
 #include "Solver.h"
+#include <string>
 
 namespace EMSolver2D {
 
@@ -22,12 +23,6 @@ namespace EMSolver2D {
 		MainForm(void)
 		{
 			this->bmp = gcnew Bitmap(bmpSizeX, bmpSizeY);
-			//
-			//TODO: Add the constructor code here
-			//
-			//for (int i = 0; i < bmpSizeX; i++)
-				//for (int j = 0; j < bmpSizeY; j++)
-					//this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(1, int(i%256), 0, int(j %256)));
 			InitializeComponent();
 		}
 
@@ -42,19 +37,28 @@ namespace EMSolver2D {
 				delete components;
 			}
 		}
+	public: Solver* sol = new Solver(0.05,0.2,10.0,50.0,50.0);
+	public: int t = 0;
 	public:System::Drawing::Bitmap^ bmp;
-	public: int bmpSizeX = 1000;
-	public: int bmpSizeY = 500;
+	private: const int bmpSizeX = 1000;
+	private: const int bmpSizeY = 500;
+
 	private: System::Windows::Forms::PictureBox^ pictureBox1;
 	private: System::Windows::Forms::Label^ label1;
 	private: System::Windows::Forms::Label^ label2;
 	private: System::Windows::Forms::Button^ button1;
+	private: System::Windows::Forms::TrackBar^ trackBar1;
+	private: System::Windows::Forms::Button^ button2;
+	public: System::Windows::Forms::Timer^ timer1;
+	private: System::ComponentModel::IContainer^ components;
+
+
 
 	private:
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
-		System::ComponentModel::Container^ components;
+
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
@@ -63,20 +67,25 @@ namespace EMSolver2D {
 		/// </summary>
 		void InitializeComponent(void)
 		{
+			this->components = (gcnew System::ComponentModel::Container());
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
 			this->label1 = (gcnew System::Windows::Forms::Label());
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->button1 = (gcnew System::Windows::Forms::Button());
+			this->trackBar1 = (gcnew System::Windows::Forms::TrackBar());
+			this->button2 = (gcnew System::Windows::Forms::Button());
+			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// pictureBox1
 			// 
 			this->pictureBox1->BackColor = System::Drawing::Color::White;
 			this->pictureBox1->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Zoom;
-			this->pictureBox1->Location = System::Drawing::Point(0, 70);
+			this->pictureBox1->Location = System::Drawing::Point(-1, 76);
 			this->pictureBox1->Name = L"pictureBox1";
-			this->pictureBox1->Size = System::Drawing::Size(bmpSizeX, bmpSizeY);
+			this->pictureBox1->Size = System::Drawing::Size(1000, 500);
 			this->pictureBox1->TabIndex = 0;
 			this->pictureBox1->TabStop = false;
 			this->pictureBox1->Click += gcnew System::EventHandler(this, &MainForm::pictureBox1_Click);
@@ -111,15 +120,44 @@ namespace EMSolver2D {
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(157, 32);
 			this->button1->TabIndex = 3;
-			this->button1->Text = L"button1";
+			this->button1->Text = L"Stop";
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &MainForm::button1_Click);
+			// 
+			// trackBar1
+			// 
+			this->trackBar1->LargeChange = 10;
+			this->trackBar1->Location = System::Drawing::Point(904, 24);
+			this->trackBar1->Maximum = 199;
+			this->trackBar1->Name = L"trackBar1";
+			this->trackBar1->Size = System::Drawing::Size(217, 56);
+			this->trackBar1->TabIndex = 5;
+			this->trackBar1->Scroll += gcnew System::EventHandler(this, &MainForm::trackBar1_Scroll);
+			this->trackBar1->ValueChanged += gcnew System::EventHandler(this, &MainForm::trackBar1_ValueChanged);
+			// 
+			// button2
+			// 
+			this->button2->Location = System::Drawing::Point(482, 24);
+			this->button2->Name = L"button2";
+			this->button2->Size = System::Drawing::Size(131, 32);
+			this->button2->TabIndex = 6;
+			this->button2->Text = L"Start";
+			this->button2->UseVisualStyleBackColor = true;
+			this->button2->Click += gcnew System::EventHandler(this, &MainForm::button2_Click);
+			// 
+			// timer1
+			// 
+			this->timer1->Enabled = false;
+			this->timer1->Interval = 1;
+			this->timer1->Tick += gcnew System::EventHandler(this, &MainForm::timer1_Tick);
 			// 
 			// MainForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1680, 1024);
+			this->Controls->Add(this->button2);
+			this->Controls->Add(this->trackBar1);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->label2);
 			this->Controls->Add(this->label1);
@@ -129,6 +167,7 @@ namespace EMSolver2D {
 			this->Text = L"EMSolver2D";
 			this->Resize += gcnew System::EventHandler(this, &MainForm::MainForm_Resize);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -144,7 +183,7 @@ namespace EMSolver2D {
 	}
 
 	private: System::Void label2_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->label2->Text = this->Height.ToString();
+		this->label2->Text = this->timer1->Enabled.ToString();
 	}
 	private: System::Void MainForm_Resize(System::Object^ sender, System::EventArgs^ e) {
 		//int pictureBoxSizeX = this->Width - 250;
@@ -154,11 +193,39 @@ namespace EMSolver2D {
 		this->label1->Text = this->Width.ToString();
 		this->label2->Text = this->Height.ToString();
 	}
+	private: System::Void button2_Click(System::Object^ sender, System::EventArgs^ e) {
+		this->sol->updateExplicitTE();
+		this->label2->Text = L"True";
+		this->timer1->Enabled = true;
+	}
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
-		for (int i = 0; i < bmpSizeX; i++)
-			for (int j = 0; j < bmpSizeY; j++)
-				this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, int(i * 255 / bmpSizeX), 0, int(j * 255 / bmpSizeY)));
+		this->timer1->Enabled = false;
+	}
+	
+	private: System::Void trackBar1_Scroll(System::Object^ sender, System::EventArgs^ e) {
+		this->label1->Text = this->t.ToString();
+		this->t = this->trackBar1->Value;
+		for (int i = 0; i < this->sol->x_len; i++)
+			for (int j = 0; j < this->sol->y_len; j++)
+				if (this->sol->SimReg[this->t][i][j].Ex > 0)
+					this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, int(this->sol->SimReg[this->t][i][j].Ex * 255) % 256, 0, 0));
+				else
+					this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, 0, 0, int(-1 * this->sol->SimReg[this->t][i][j].Ex * 255) % 256));
 		this->pictureBox1->Image = this->bmp;
 	}
-	};
+	private: System::Void trackBar1_ValueChanged(System::Object^ sender, System::EventArgs^ e) {
+		this->label1->Text = this->t.ToString();
+		this->t = this->trackBar1->Value;
+		for (int i = 0; i < this->sol->x_len; i++)
+			for (int j = 0; j < this->sol->y_len; j++)
+				if (this->sol->SimReg[this->t][i][j].Ex > 0)
+					this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, int(this->sol->SimReg[this->t][i][j].Ex * 255) % 256, 0, 0));
+				else
+					this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, 0, 0, int(-1 * this->sol->SimReg[this->t][i][j].Ex * 255) % 256));
+		this->pictureBox1->Image = this->bmp;
+	}
+	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
+		this->trackBar1->Value = (this->trackBar1->Value + 1) % this->trackBar1->Maximum;
+	}
+};
 }
