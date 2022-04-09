@@ -31,115 +31,109 @@ struct cell
 
 class  Solver
 {
+public: double cfl; // the Courant-Friedrichs-Levy coefficient
 public: double dt; // time step
 public: double delta; // spatial step
-public: double t_end; // End time of simulation
+public: double t_end = 0; // End time step of simulation
+public: int t_last = 0; // Last time step of simulation 
 public: double x_dim; // length in x dimension 
 public: double y_dim; // length in y dimension
 public: int x_len; // amount of cells in X-direction
 public: int y_len; // amount of cells in Y-direction
-public: int t_len; // amount of time steps
 public: std::vector< std::vector<std::vector<cell>>> SimReg; // 3-dim matrix that contains 2d matrix of cells for each time-step
 
 	public: 
-	Solver(double dt, double delta, double t_end, double xdim, double ydim)//, double (*func)(double,int,int)
-		: dt(dt), delta(delta), t_end(t_end), x_dim(xdim), y_dim(ydim){
+	Solver(double delta, double cfl, double xdim, double ydim)//, double (*func)(double,int,int)
+		: cfl(cfl), delta(delta), t_end(0), x_dim(xdim), y_dim(ydim){
 		x_len = int(x_dim / delta);
 		y_len = int(y_dim / delta);
-		t_len = int(t_end / dt);
+		dt = cfl * delta;
+
+		//init matrix for time = 0:
+		initNewTimeMatrix();
+		t_last--;
+		//init matrix for time = dt:
+		initNewTimeMatrix();
+	}
+public:
+	void initNewTimeMatrix()
+	{
+		//init matrix for new time step:
 		std::vector<std::vector<cell>> tmpx;
 		std::vector<cell> tmpy;
-		for (double t = 0; t <= t_end; t += dt)
+		tmpx.clear();
+		for (int x = 0; x < x_len; x++)
 		{
-			tmpx.clear();
-			for (int x = 0; x < x_len; x++)
-			{
-				tmpy.clear();
-				for (int y = 0; y < y_len; y++)
-				{
-					tmpy.push_back(cell());
-				}
-				tmpx.push_back(tmpy);
-			}
-			SimReg.push_back(tmpx);
-		}
-	}
-public:
-	void updateExplicitTM() //Transverse Magnetic field LeapFrog scheme
-	{
-		for (int t = 1; t < t_len; t++)
-		{
-			double current_time = (t - 1) * dt;
+			tmpy.clear();
 			for (int y = 0; y < y_len; y++)
-				SimReg[t - 1][10][y].Hz = sin(current_time / 5);
-			//Update Hx
-			for (int x = 0; x < x_len; x++)
 			{
-				for (int y = 1; y < y_len - 1; y++)
-				{
-					SimReg[t][x][y].Hx = SimReg[t - 1][x][y].Hx 
-						- dt / (SimReg[t - 1][x][y].mu * delta) * (SimReg[t - 1][x][y+1].Ez - SimReg[t - 1][x][y].Ez);
-				}
+				tmpy.push_back(cell());
 			}
-			//Update Hy
-			for (int x = 1; x < x_len - 1; x++)
-			{
-				for (int y = 0; y < y_len; y++)
-				{
-					SimReg[t][x][y].Hy = SimReg[t - 1][x][y].Hy 
-						+ dt / (SimReg[t - 1][x][y].mu * delta) * (SimReg[t - 1][x+1][y].Ez - SimReg[t - 1][x][y].Ez);
-				}
+			tmpx.push_back(tmpy);
+		}
+		SimReg.push_back(tmpx);
+		
+
+		for (int y = 0; y < y_len; y++)
+			for (int x = 0; x < 2; x++) {
+				SimReg[t_last][x][y].Hz = sin(t_end); // First define source in previous step then increment t_last
 			}
-			//Update Ez
-			for (int x = 1; x < x_len - 1; x++)
+		t_last ++;
+		t_end += dt;
+	}
+public:
+	void testschemeTM()
+	{
+		initNewTimeMatrix();
+		double a = dt / delta;
+		for (int x = 1; x < x_len - 1; x++)
+		{
+			for (int y = 1; y < y_len - 1; y++)
 			{
-				for (int y = 1; y < y_len - 1; y++)
-				{
-					SimReg[t][x][y].Ez = SimReg[t - 1][x][y].Ez
-						- dt / (SimReg[t - 1][x][y].eps * delta) * (SimReg[t - 1][x][y].Hx - SimReg[t - 1][x][y + 1].Ex)
-						+ dt / (SimReg[t - 1][x][y].eps * delta) * (SimReg[t - 1][x][y].Hy - SimReg[t - 1][x - 1][y].Ey); 
-				}
+				//Update Hx
+				SimReg[t_last][x][y].Hx = SimReg[t_last - 2][x][y].Hx
+					- a / SimReg[t_last - 1][x][y].mu * (SimReg[t_last - 1][x][y + 1].Ez - SimReg[t_last - 1][x][y - 1].Ez)
+					- 2 * dt / SimReg[t_last - 1][x][y].mu * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hx;
+
+				//Update Hy
+				SimReg[t_last][x][y].Hy = SimReg[t_last - 2][x][y].Hy
+					+ a / SimReg[t_last - 1][x][y].mu * (SimReg[t_last - 1][x + 1][y].Ez - SimReg[t_last - 1][x - 1][y].Ez)
+					- 2 * dt / SimReg[t_last - 1][x][y].mu * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hy;
+
+				//Update Ez:
+				SimReg[t_last][x][y].Ez = SimReg[t_last - 2][x][y].Ez
+					+ a / SimReg[t_last - 1][x][y].eps * (SimReg[t_last - 1][x+1][y].Hy - SimReg[t_last - 1][x - 1][y].Hy)
+					- a / SimReg[t_last - 1][x][y].eps * (SimReg[t_last - 1][x][y+1].Hx - SimReg[t_last - 1][x][y - 1].Hx)
+					- 2 * dt / SimReg[t_last - 1][x][y].eps * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ez;
 			}
 		}
 	}
 public:
-	void updateExplicitTE() //Transverse Electric field LeapFrog scheme
+	void testschemeTE()
 	{
-		for (int t = 1 ; t < t_len; t++)
+		initNewTimeMatrix();
+		double a = dt / delta;
+		for (int x = 1; x < x_len - 1; x++)
 		{
-			double current_time = (t-1) * dt;
-			for(int y = 0;y<y_len;y++)
-				SimReg[t-1][10][y].Hz = sin(current_time / 5);
-			//Update Ex
-			for (int x = 0; x < x_len; x++)
+			for (int y = 1; y < y_len - 1; y++)
 			{
-				for (int y = 1; y < y_len-1; y++)
-				{
-					SimReg[t][x][y].Ex = SimReg[t - 1][x][y].Ex 
-						+ dt/ (SimReg[t - 1][x][y].eps*delta) * (SimReg[t - 1][x][y].Hz - SimReg[t - 1][x][y-1].Hz);
-				}
-			}
-			//Update Ey
-			for (int x = 1; x < x_len-1; x++)
-			{
-				for (int y = 0; y < y_len ; y++)
-				{
-					SimReg[t][x][y].Ey = SimReg[t - 1][x][y].Ey 
-						- dt/(SimReg[t - 1][x][y].eps*delta) * (SimReg[t - 1][x][y].Hz - SimReg[t - 1][x-1][y].Hz);
-				}
-			}
-			//Update Hz
-			for (int x = 1; x < x_len-1; x++)
-			{
-				for (int y = 1; y < y_len-1; y++)
-				{
-					SimReg[t][x][y].Hz = SimReg[t - 1][x][y].Hz 
-						+ dt/(SimReg[t - 1][x][y].mu * delta)*(SimReg[t - 1][x+1][y+1].Ex - SimReg[t - 1][x+1][y].Ex) 
-						- dt/(SimReg[t - 1][x][y].mu * delta) * (SimReg[t - 1][x+1][y+1].Ey - SimReg[t - 1][x][y+1].Ey);
- 				}
+				//Update Ex
+				SimReg[t_last][x][y].Ex = SimReg[t_last - 2][x][y].Ex
+					+ a / SimReg[t_last - 1][x][y].eps * (SimReg[t_last - 1][x][y + 1].Hz - SimReg[t_last - 1][x][y - 1].Hz)
+					- 2 * dt / SimReg[t_last - 1][x][y].eps * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ex;
+
+				//Update Ey
+				SimReg[t_last][x][y].Ey = SimReg[t_last - 2][x][y].Ey
+					- a / SimReg[t_last - 1][x][y].eps * (SimReg[t_last - 1][x + 1][y].Hz - SimReg[t_last - 1][x - 1][y].Hz)
+					- 2 * dt / SimReg[t_last - 1][x][y].eps * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ey;
+
+				//Update Hz:
+				SimReg[t_last][x][y].Hz = SimReg[t_last - 2][x][y].Hz
+					+ a / SimReg[t_last - 1][x][y].mu * (SimReg[t_last - 1][x][y + 1].Ex - SimReg[t_last - 1][x][y - 1].Ex)
+					- a / SimReg[t_last - 1][x][y].mu * (SimReg[t_last - 1][x + 1][y].Ey - SimReg[t_last - 1][x - 1][y].Ey)
+					- 2 * dt / SimReg[t_last - 1][x][y].mu * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hz;
 			}
 		}
 	}
-
 
 };
