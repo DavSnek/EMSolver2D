@@ -21,10 +21,10 @@ struct cell
 	double Hx;	 // X-component of Magnetic field
 	double Hy;	 // Y-component of Magnetic field
 	double Hz;	 // Z-component of Magnetic field
-	double eps;  // Relative Permittivity
-	double mu;   // Relative Permability
-	double sigE; //	Electric conductivity
-	double sigH; // Magnetic condictivity
+	float eps;  // Relative Permittivity
+	float mu;   // Relative Permability
+	float sigE; // Electric conductivity
+	float sigH; // Magnetic condictivity
 
 	cell() : Ex(0), Ey(0), Ez(0), Hx(0), Hy(0), Hz(0), eps(1), mu(1), sigE(0), sigH(0) {}
 };
@@ -74,15 +74,60 @@ public:
 		SimReg.push_back(tmpx);
 		
 
-		for (int y = 0; y < y_len; y++)
-			for (int x = 0; x < 2; x++) {
-				SimReg[t_last][x][y].Hz = sin(t_end); // First define source in previous step then increment t_last
-			}
+		sourceOnePoint();
 		t_last ++;
 		t_end += dt;
 	}
 public:
-	void testschemeTM()
+	void sourceTwoPoint()
+	{
+		for (int y = int(3 * y_len / 4 - 2); y < int(3 * y_len / 4 + 2); y++)
+			for (int x = int(3 * x_len / 4 - 2); x < int(3 * x_len / 4 + 2); x++) {
+				SimReg[t_last][x][y].Hz = sin(t_end);
+			}
+		for (int y = int(y_len / 4 - 2); y < int(y_len / 4 + 2); y++)
+			for (int x = int(x_len / 4 - 2); x < int(x_len / 4 + 2); x++) {
+				SimReg[t_last][x][y].Hz = -sin(t_end);
+			}
+	}
+public:
+	void sourcePlaneWave()
+	{
+		for (int j = 0; j < y_len; j++)
+		{
+			SimReg[t_last][3][j].Hz = sin(t_end);
+		}
+	}
+public:
+	void sourceOnePoint()
+	{
+		SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2)].Hz = sin(t_end);
+		SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) + 1].Hz = sin(t_end);
+		SimReg[t_last][int(x_len / 2)][int(y_len / 2) + 1].Hz = sin(t_end);
+		SimReg[t_last][int(x_len / 2)][int(y_len / 2)].Hz = sin(t_end);
+	}
+public:
+	void PEC()
+	{
+		for (int j = 0; j < 2; j++)
+			for (int i = 0; i < x_len; i++)
+			{
+				SimReg[t_last][i][j].Ex = 0;
+				SimReg[t_last][i][y_len - 1 - j].Ex = 0;
+				SimReg[t_last][i][j].Ey = 0;
+				SimReg[t_last][i][y_len - 1 - j].Ey = 0;
+		}
+		for (int i = 0; i < 2; i++)
+			for (int j = 0; j < y_len; j++)
+			{
+				SimReg[t_last][i][j].Ex = 0;
+				SimReg[t_last][y_len - 1 - i][j].Ex = 0;
+				SimReg[t_last][i][j].Ey = 0;
+				SimReg[t_last][y_len - 1 - i][j].Ey = 0;
+			}
+	}
+public:
+	void testschemeTM() // Leapfrog scheme for time evolution of TM Mode
 	{
 		initNewTimeMatrix();
 		double a = dt / delta;
@@ -109,7 +154,7 @@ public:
 		}
 	}
 public:
-	void testschemeTE()
+	void testschemeTE() // Leapfrog scheme for time evolution of TE Mode
 	{
 		initNewTimeMatrix();
 		double a = dt / delta;

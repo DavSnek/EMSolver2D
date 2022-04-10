@@ -237,23 +237,23 @@ namespace EMSolver2D {
 	private: System::Void trackBar1_ValueChanged(System::Object^ sender, System::EventArgs^ e) {
 		this->label1->Text = this->sol->t_end.ToString();
 		double fieldMax = 1;
+
+
 		for (int i = 0; i < this->sol->x_len; i++)
-			for (int j = 0; j < this->sol->y_len; j++)
+			for (int j = 0; j < this->sol->y_len; j++) {
 				if (abs(this->sol->SimReg[this->trackBar1->Value][i][j].Hz) > fieldMax)
 					fieldMax = abs(this->sol->SimReg[this->trackBar1->Value][i][j].Hz);
-
-		this->label3->Text = fieldMax.ToString();
-
-		for (int i = 0; i < this->sol->x_len; i++)
-			for (int j = 0; j < this->sol->y_len; j++)
 				if (this->sol->SimReg[this->trackBar1->Value][i][j].Hz > 0)
 					this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, int(this->sol->SimReg[this->trackBar1->Value][i][j].Hz * 255 / fieldMax), 0, 0));
 				else
 					this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, 0, 0, int(-1 * this->sol->SimReg[this->trackBar1->Value][i][j].Hz * 255 / fieldMax)));
+			}
+		this->label3->Text = fieldMax.ToString();
 		this->pictureBox1->Image = this->bmp;
 	}
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
 		this->sol->testschemeTE();
+		this->sol->PEC();
 		this->label2->Text = this->sol->t_last.ToString();
 		this->trackBar1->Maximum = this->sol->t_last;
 		this->trackBar1->Value = this->sol->t_last - 1;
