@@ -37,7 +37,7 @@ namespace EMSolver2D {
 				delete components;
 			}
 		}
-	public: Solver* sol = new Solver(0.05,0.7,400*0.05,200*0.05);
+	public: Solver* sol = new Solver(0.1,0.7,30.0,15.0);
 	public: int t = 0;
 	public:System::Drawing::Bitmap^ bmp;
 	private: const int bmpSizeX = 1000;
@@ -240,18 +240,11 @@ namespace EMSolver2D {
 		this->pictureBox1->Image = this->bmp;
 	}
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
-		//this->sol->testschemeTE();
+		//this->sol->ExplicitTE();
 		//this->sol->PEC();
 		//this->sol->primitiveABC();
 		this-> sol->demoYoung();
-		//this->sol->naiveattenuation();
 		//this->sol->PML();
-		this->label2->Text = this->sol->t_last.ToString();
-		this->trackBar1->Maximum = this->sol->t_last;
-		this->trackBar1->Value = this->sol->t_last - 1;
-	}
-	private: System::Void button3_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->sol->testschemeTE();
 		this->label2->Text = this->sol->t_last.ToString();
 		this->trackBar1->Maximum = this->sol->t_last;
 		this->trackBar1->Value = this->sol->t_last - 1;

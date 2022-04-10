@@ -166,19 +166,19 @@ public:
 	void demoYoung()
 	{
 		sourcePlaneWave(5,"x", 12*0.05);
-		testschemeTE();
+		ExplicitTE();
 		PEC();
 		for (int i = -2; i < 3; i++) 
 		{
-			for (int j = 0; j < 80; j++) {
+			for (int j = 0; j < int(y_len/2 - 15); j++) {
 				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
 				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
 			}
-			for (int j =90; j < 110; j++) {
+			for (int j = int(y_len / 2 - 5); j < int(y_len / 2 +5); j++) {
 				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
 				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
 			}
-			for (int j = 120; j < y_len; j++) {
+			for (int j = int(y_len / 2 + 15); j < y_len; j++) {
 				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
 				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
 			}
@@ -424,7 +424,7 @@ public:
 		}
 	}
 public:
-	void testschemeTM() // Leapfrog scheme for time evolution of TM Mode
+	void ExplicitTM() // Leapfrog scheme for time evolution of TM Mode
 	{
 		initNewTimeMatrix();
 		double a = dt / delta;
@@ -451,7 +451,7 @@ public:
 		}
 	}
 public:
-	void testschemeTE() // Leapfrog scheme for time evolution of TE Mode
+	void ExplicitTE() // Leapfrog scheme for time evolution of TE Mode
 	{
 		initNewTimeMatrix();
 		double a = dt / delta;
