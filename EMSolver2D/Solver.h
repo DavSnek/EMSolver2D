@@ -16,12 +16,12 @@ void changeColor(System::Drawing::Bitmap^ bmp, int cX, int cY)
 }
 struct cell
 {
-	double Ex;	 // X-component of Electric field
-	double Ey;	 // Y-component of Electric field
-	double Ez;	 // Z-component of Electric field
-	double Hx;	 // X-component of Magnetic field
-	double Hy;	 // Y-component of Magnetic field
-	double Hz;	 // Z-component of Magnetic field
+	float Ex;	 // X-component of Electric field
+	float Ey;	 // Y-component of Electric field
+	float Ez;	 // Z-component of Electric field
+	float Hx;	 // X-component of Magnetic field
+	float Hy;	 // Y-component of Magnetic field
+	float Hz;	 // Z-component of Magnetic field
 	float eps;  // Relative Permittivity
 	float mu;   // Relative Permability
 	float sigE; // Electric conductivity
@@ -98,6 +98,7 @@ public:
 			tmpx.push_back(tmpy);
 		}
 		SimReg.push_back(tmpx);
+		//sourceOnePoint();
 		t_last ++;
 		t_end += dt;
 	}

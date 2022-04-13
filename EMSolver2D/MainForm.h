@@ -22,8 +22,11 @@ namespace EMSolver2D {
 	public:
 		MainForm(void)
 		{
-			this->bmp = gcnew Bitmap(bmpSizeX, bmpSizeY);
+			//Initialize bitmap values
+			this->bmp = gcnew Bitmap(this->sol->x_len, this->sol->y_len);
 			InitializeComponent();
+			this->img = gcnew Bitmap(this->pictureBox1->Width, this->pictureBox1->Height);
+
 		}
 
 	protected:
@@ -40,8 +43,8 @@ namespace EMSolver2D {
 	public: Solver* sol = new Solver(0.1,0.7,30.0,15.0);
 	public: int t = 0;
 	public:System::Drawing::Bitmap^ bmp;
-	private: const int bmpSizeX = 1000;
-	private: const int bmpSizeY = 500;
+	public:System::Drawing::Bitmap^ img;
+	private: float fieldMax = 1;
 
 	private: System::Windows::Forms::PictureBox^ pictureBox1;
 	private: System::Windows::Forms::Label^ label1;
@@ -85,7 +88,7 @@ namespace EMSolver2D {
 			// 
 			// pictureBox1
 			// 
-			this->pictureBox1->BackColor = System::Drawing::Color::White;
+			this->pictureBox1->BackColor = System::Drawing::Color::Gainsboro;
 			this->pictureBox1->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Zoom;
 			this->pictureBox1->Location = System::Drawing::Point(-1, 76);
 			this->pictureBox1->Name = L"pictureBox1";
@@ -187,7 +190,7 @@ namespace EMSolver2D {
 		}
 #pragma endregion
 	private: System::Void pictureBox1_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->pictureBox1->Image = bmp;
+	
 	}
 	private: System::Void label1_Click(System::Object^ sender, System::EventArgs^ e) {
 		this->label1->Text = this->Width.ToString();
@@ -201,43 +204,52 @@ namespace EMSolver2D {
 		this->label2->Text = this->Height.ToString();
 	}
 	private: System::Void button2_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->label2->Text = L"True";
 		this->timer1->Enabled = true;
 	}
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
-		this->label2->Text = L"False";
 		this->timer1->Enabled = false;
 	}
 	
 	private: System::Void trackBar1_Scroll(System::Object^ sender, System::EventArgs^ e) {
-		for (int i = 0; i < this->sol->x_len; i++)
-			for (int j = 0; j < this->sol->y_len; j++)
-				if (this->sol->SimReg[this->trackBar1->Value][i][j].Ex > 0)
-					this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, int(this->sol->SimReg[this->trackBar1->Value][i][j].Ex * 255) % 256, 0, 0));
+		this->label1->Text = this->sol->t_end.ToString();
+
+		for (int x = 0; x < this->sol->x_len; x++)
+			for (int y = 0; y < this->sol->y_len; y++) {
+				if (abs(this->sol->SimReg[this->trackBar1->Value][x][y].Hz) > this->fieldMax)
+					this->fieldMax = abs(this->sol->SimReg[this->trackBar1->Value][x][y].Hz);
+
+				if (this->sol->SimReg[this->trackBar1->Value][x][y].Hz > 0)
+					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(int(this->sol->SimReg[this->trackBar1->Value][x][y].Hz * 255 / this->fieldMax), 255, 0, 0));
 				else
-					this->bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, 0, 0, int(-1 * this->sol->SimReg[this->trackBar1->Value][i][j].Ex * 255) % 256));
-		this->pictureBox1->Image = this->bmp;
+					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(int(-1 * this->sol->SimReg[this->trackBar1->Value][x][y].Hz * 255 / this->fieldMax), 0, 0, 255));
+			}
+		this->label3->Text = this->fieldMax.ToString();
+		this->pictureBox1->Image = img;
+		Graphics^ test = Graphics::FromImage(this->pictureBox1->Image);
+		test->InterpolationMode = System::Drawing::Drawing2D::InterpolationMode::HighQualityBicubic;
+		test->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;
+		test->Clear(this->pictureBox1->BackColor);
+		test->DrawImage(this->bmp, 0, 0, this->pictureBox1->Width, this->pictureBox1->Height);
 	}
 	private: System::Void trackBar1_ValueChanged(System::Object^ sender, System::EventArgs^ e) {
 		this->label1->Text = this->sol->t_end.ToString();
-		double fieldMax = 1;
-		int i, j;
-		int w = this->pictureBox1->Width;
-		int h = this->pictureBox1->Height;
 
-		for (int x = 0; x < w; x++)
-			for (int y = 0; y < h; y++) {
-				i = int(x * (this->sol->x_len - 1)/ w);
-				j = int(y * (this->sol->y_len - 1)/ h);
-				if (abs(this->sol->SimReg[this->trackBar1->Value][i][j].Hz) > fieldMax)
-					fieldMax = abs(this->sol->SimReg[this->trackBar1->Value][i][j].Hz);
-				if (this->sol->SimReg[this->trackBar1->Value][i][j].Hz > 0)
-					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(255, int(this->sol->SimReg[this->trackBar1->Value][i][j].Hz * 255 / fieldMax), 0, 0));
+		for (int x = 0; x < this->sol->x_len; x++)
+			for (int y = 0; y < this->sol->y_len; y++) {
+				if (abs(this->sol->SimReg[this->trackBar1->Value][x][y].Hz) > this->fieldMax)
+					this->fieldMax = abs(this->sol->SimReg[this->trackBar1->Value][x][y].Hz);
+
+				if (this->sol->SimReg[this->trackBar1->Value][x][y].Hz > 0)
+					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(int(this->sol->SimReg[this->trackBar1->Value][x][y].Hz * 255 / this->fieldMax), 255, 0, 0));
 				else
-					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(255, 0, 0, int(-1 * this->sol->SimReg[this->trackBar1->Value][i][j].Hz * 255 / fieldMax)));
+					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(int(-1 * this->sol->SimReg[this->trackBar1->Value][x][y].Hz * 255 / this->fieldMax), 0, 0,255));
 			}
-		this->label3->Text = fieldMax.ToString();
-		this->pictureBox1->Image = this->bmp;
+		this->label3->Text = this->fieldMax.ToString();
+		this->pictureBox1->Image = img;
+		Graphics^ test = Graphics::FromImage(this->pictureBox1->Image);
+		test->InterpolationMode = System::Drawing::Drawing2D::InterpolationMode::HighQualityBicubic;
+		test->Clear(this->pictureBox1->BackColor);
+		test->DrawImage(this->bmp, 0, 0, this->pictureBox1->Width, this->pictureBox1->Height);
 	}
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
 		//this->sol->ExplicitTE();
