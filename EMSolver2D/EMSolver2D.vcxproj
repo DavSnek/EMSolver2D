@@ -125,9 +125,11 @@
     <ClCompile Include="MainForm.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EMConstants.h" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="Particle.h" />
     <ClInclude Include="Solver.h" />
   </ItemGroup>
   <ItemGroup>
