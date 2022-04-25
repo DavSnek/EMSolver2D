@@ -1,6 +1,8 @@
 #pragma once
 #include "Solver.h"
 #include <string>
+#include "EMConstants.h"
+#include "Particle.h"
 
 namespace EMSolver2D {
 
@@ -40,11 +42,12 @@ namespace EMSolver2D {
 				delete components;
 			}
 		}
-	public: Solver* sol = new Solver(0.1,0.7,30.0,15.0);
+	private: float um = 100;
+	public: Solver* sol = new Solver(um*0.01,0.7,um, um);
 	public: int t = 0;
 	public:System::Drawing::Bitmap^ bmp;
 	public:System::Drawing::Bitmap^ img;
-	private: float fieldMax = 1;
+	private: double fieldMax = 1e-9;
 
 	private: System::Windows::Forms::PictureBox^ pictureBox1;
 	private: System::Windows::Forms::Label^ label1;
@@ -204,6 +207,9 @@ namespace EMSolver2D {
 		this->label2->Text = this->Height.ToString();
 	}
 	private: System::Void button2_Click(System::Object^ sender, System::EventArgs^ e) {
+		this->sol->initNewParticle(1, 1, 30, 60, 0, 0);
+		this->sol->initNewParticle(1, 1e10, 50, 50, 0, 0);
+
 		this->timer1->Enabled = true;
 	}
 	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -232,18 +238,22 @@ namespace EMSolver2D {
 		test->DrawImage(this->bmp, 0, 0, this->pictureBox1->Width, this->pictureBox1->Height);
 	}
 	private: System::Void trackBar1_ValueChanged(System::Object^ sender, System::EventArgs^ e) {
-		this->label1->Text = this->sol->t_end.ToString();
+		this->label1->Text = this->sol->SimReg[this->trackBar1->Value][int(this->sol->x_len / 2)][int(this->sol->y_len / 2)].Hz.ToString();
 
 		for (int x = 0; x < this->sol->x_len; x++)
 			for (int y = 0; y < this->sol->y_len; y++) {
-				if (abs(this->sol->SimReg[this->trackBar1->Value][x][y].Hz) > this->fieldMax)
-					this->fieldMax = abs(this->sol->SimReg[this->trackBar1->Value][x][y].Hz);
+				if (abs(this->sol->SimReg[this->trackBar1->Value][x][y].Ex) > this->fieldMax)
+					this->fieldMax = abs(this->sol->SimReg[this->trackBar1->Value][x][y].Ex);
 
-				if (this->sol->SimReg[this->trackBar1->Value][x][y].Hz > 0)
-					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(int(this->sol->SimReg[this->trackBar1->Value][x][y].Hz * 255 / this->fieldMax), 255, 0, 0));
+				if (this->sol->SimReg[this->trackBar1->Value][x][y].Ex > 0)
+					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(int(this->sol->SimReg[this->trackBar1->Value][x][y].Ex * 255 / this->fieldMax), 255, 0, 0));
 				else
-					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(int(-1 * this->sol->SimReg[this->trackBar1->Value][x][y].Hz * 255 / this->fieldMax), 0, 0,255));
+					this->bmp->SetPixel(x, y, System::Drawing::Color::FromArgb(int(-1 * this->sol->SimReg[this->trackBar1->Value][x][y].Ex * 255 / this->fieldMax), 0, 0,255));
 			}
+		for (auto p : this->sol->particles)
+		{
+			this->bmp->SetPixel(int(p->pos[0]), int(p->pos[1]), System::Drawing::Color::Green);
+		}
 		this->label3->Text = this->fieldMax.ToString();
 		this->pictureBox1->Image = img;
 		Graphics^ test = Graphics::FromImage(this->pictureBox1->Image);
@@ -252,10 +262,14 @@ namespace EMSolver2D {
 		test->DrawImage(this->bmp, 0, 0, this->pictureBox1->Width, this->pictureBox1->Height);
 	}
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
-		//this->sol->ExplicitTE();
-		//this->sol->PEC();
+		//this->sol->sourceOnePoint(10,1);
+		//this->sol->sourcePlaneWave(10, 1, "x", 2);
+		this->sol->PICpos();
+		this->sol->ExplicitTE();
+		this->sol->PICvel();
+		this->sol->PEC();
 		//this->sol->primitiveABC();
-		this-> sol->demoYoung();
+		//this-> sol->demoYoung();
 		//this->sol->PML();
 		this->label2->Text = this->sol->t_last.ToString();
 		this->trackBar1->Maximum = this->sol->t_last;
