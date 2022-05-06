@@ -8,14 +8,6 @@
 using namespace System;
 using namespace System::Drawing;
 
-void changeColor(System::Drawing::Bitmap^ bmp, int cX, int cY)
-{
-	int sizeX = bmp->Width;
-	int sizeY = bmp->Height;
-	for (int i = 0; i < sizeX; i++)
-		for (int j = 0; j < sizeY; j++)
-			bmp->SetPixel(i, j, System::Drawing::Color::FromArgb(255, int(abs(i - cX) * 255 / sizeX), int(abs(j - cY) * 255 / sizeY), 0));
-}
 struct cell
 {
 	float Ex;	 // X-component of Electric field
@@ -165,72 +157,85 @@ public:
 		}
 	}
 public:
-	void sourceOnePoint(float omega, double amplitude)
+	void sourceOnePoint(float omega, double amplitude, bool TE = true)
 	{
-		double src1 = amplitude * sin(6.28 * omega * (t_end + delta/c));
-		double src2 = amplitude * sin(6.28 * omega * t_end);
-		SimReg[t_last][int(x_len / 2)][int(y_len / 2)].Hz = src1;
-
-		SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2 + 1)].Hz = src2;
-		SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2) - 1].Hz = src2;
-		SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) - 1].Hz = src2;
-		SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) + 1].Hz = src2;
-
-		SimReg[t_last][int(x_len / 2)][int(y_len / 2) + 1].Hz = src2;
-		SimReg[t_last][int(x_len / 2)][int(y_len / 2) - 1].Hz = src2;
-		SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2)].Hz = src2;
-		SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2)].Hz = src2;
-
-	}
-public:
-	void demoYoung()
-	{
-		sourcePlaneWave(WlenToFrq(600e-9), 1e-20, "x", 12 * 0.05);
-		ExplicitTE();
-		PEC();
-		for (int i = -2; i < 3; i++) 
+		double src1 = amplitude * sin(6.28 * omega * t_end);
+		double src2 = amplitude * sin(6.28 * omega * t_end + delta * 6.28*omega/c);
+		if (TE)
 		{
-			for (int j = 0; j < int(y_len/2 - 15); j++) {
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
-			}
-			for (int j = int(y_len / 2 - 5); j < int(y_len / 2 +5); j++) {
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
-			}
-			for (int j = int(y_len / 2 + 15); j < y_len; j++) {
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
-			}
-			/*for (int j = 0; j < 95; j++) {
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
-			}
-			for (int j = 105; j < y_len; j++) {
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
-				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
-			}*/
+			SimReg[t_last][int(x_len / 2)][int(y_len / 2)].Hz = src1;
+
+			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2 + 1)].Hz = src2;
+			SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2) - 1].Hz = src2;
+			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) - 1].Hz = src2;
+			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) + 1].Hz = src2;
+
+			SimReg[t_last][int(x_len / 2)][int(y_len / 2) + 1].Hz = src2;
+			SimReg[t_last][int(x_len / 2)][int(y_len / 2) - 1].Hz = src2;
+			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2)].Hz = src2;
+			SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2)].Hz = src2;
 		}
+		else
+		{
+			SimReg[t_last][int(x_len / 2)][int(y_len / 2)].Ez = src1;
+
+			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2 + 1)].Ez = src2;
+			SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2) - 1].Ez = src2;
+			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) - 1].Ez = src2;
+			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) + 1].Ez = src2;
+
+			SimReg[t_last][int(x_len / 2)][int(y_len / 2) + 1].Ez = src2;
+			SimReg[t_last][int(x_len / 2)][int(y_len / 2) - 1].Ez = src2;
+			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2)].Ez = src2;
+			SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2)].Ez = src2;
+		}
+
 	}
 public:
 	void PEC()
 	{
-		for (int j = 0; j < 2; j++)
+		for (int j = 0; j < 4; j++)
 			for (int i = 0; i < x_len; i++)
 			{
 				SimReg[t_last][i][j].Ex = 0;
 				SimReg[t_last][i][y_len - 1 - j].Ex = 0;
 				SimReg[t_last][i][j].Ey = 0;
 				SimReg[t_last][i][y_len - 1 - j].Ey = 0;
+				SimReg[t_last][i][j].Ez = 0;
+				SimReg[t_last][i][y_len - 1 - j].Ez = 0;
 		}
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 4; i++)
 			for (int j = 0; j < y_len; j++)
 			{
 				SimReg[t_last][i][j].Ex = 0;
 				SimReg[t_last][x_len - 1 - i][j].Ex = 0;
 				SimReg[t_last][i][j].Ey = 0;
 				SimReg[t_last][x_len - 1 - i][j].Ey = 0;
+				SimReg[t_last][i][j].Ez = 0;
+				SimReg[t_last][x_len - 1 - i][j].Ez = 0;
 			}
+	}
+public:
+	void PBC()
+	{
+		//Periodic Boundary Conditions
+		//for particles:
+		for (auto p : particles)
+		{
+			if (p->pos[0] + p->v[0] * dt >= x_len) p->pos[0] = 1;
+			if (p->pos[0] + p->v[0] * dt < 1) p->pos[0] = x_len - 2;
+			if (p->pos[1] + p->v[1] * dt >= y_len) p->pos[1] = 1;
+			if (p->pos[1] + p->v[1] * dt < 1) p->pos[1] = y_len - 2;
+		}
+		// for fields:
+		for (int x = 0; x < x_len; x++)
+		{
+			SimReg[t_last][x][0] = SimReg[t_last][x][y_len - 1];
+		}
+		for (int y = 0; y < y_len; y++)
+		{
+			SimReg[t_last][0][y] = SimReg[t_last][x_len - 1][y];
+		}
 	}
 public:
 	void primitiveABC()
@@ -443,8 +448,62 @@ public:
 			}
 		}
 	}
+//public:
+//	void ExplicitTM() // Leapfrog scheme for time evolution of TM Mode
+//	{
+//		initNewTimeMatrix();
+//		double a = dt / delta;
+//		for (int x = 1; x < x_len - 1; x++)
+//		{
+//			for (int y = 1; y < y_len - 1; y++)
+//			{
+//				//Update Hx
+//				SimReg[t_last][x][y].Hx = SimReg[t_last - 2][x][y].Hx
+//					- a * (SimReg[t_last - 1][x][y + 1].Ez - SimReg[t_last - 1][x][y - 1].Ez) * (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0)
+//					- 2 * dt * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hx;
+//
+//				//Update Hy
+//				SimReg[t_last][x][y].Hy = SimReg[t_last - 2][x][y].Hy
+//					+ a * (SimReg[t_last - 1][x + 1][y].Ez - SimReg[t_last - 1][x - 1][y].Ez) * (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0)
+//					- 2 * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hy;
+//
+//				//Update Ez:
+//				SimReg[t_last][x][y].Ez = SimReg[t_last - 2][x][y].Ez
+//					+ a / (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0) * (SimReg[t_last - 1][x+1][y].Hy - SimReg[t_last - 1][x - 1][y].Hy)
+//					- a / (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0) * (SimReg[t_last - 1][x][y+1].Hx - SimReg[t_last - 1][x][y - 1].Hx)
+//					- 2 * dt / (SimReg[t_last - 1][x][y].eps * eps_0) * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ez;
+//			}
+//		}
+//	}
+//public:
+//	void ExplicitTE() // Leapfrog scheme for time evolution of TE Mode
+//	{
+//		initNewTimeMatrix();
+//		double a = dt / delta;
+//		for (int x = 1; x < x_len - 1; x++)
+//		{
+//			for (int y = 1; y < y_len - 1; y++)
+//			{
+//				//Update Ex
+//				SimReg[t_last][x][y].Ex = SimReg[t_last - 2][x][y].Ex
+//					+ a / (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0) * (SimReg[t_last - 1][x][y + 1].Hz - SimReg[t_last - 1][x][y - 1].Hz)
+//					- 2 * dt / (SimReg[t_last - 1][x][y].eps * eps_0) * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ex;
+//
+//				//Update Ey
+//				SimReg[t_last][x][y].Ey = SimReg[t_last - 2][x][y].Ey
+//					- a / (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0) * (SimReg[t_last - 1][x + 1][y].Hz - SimReg[t_last - 1][x - 1][y].Hz)
+//					- 2 * dt / (SimReg[t_last - 1][x][y].eps * eps_0) * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ey;
+//
+//				//Update Hz:
+//				SimReg[t_last][x][y].Hz = SimReg[t_last - 2][x][y].Hz
+//					+ (a * (SimReg[t_last - 1][x][y + 1].Ex - SimReg[t_last - 1][x][y - 1].Ex)
+//					- a * (SimReg[t_last - 1][x + 1][y].Ey - SimReg[t_last - 1][x - 1][y].Ey)) * (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0)
+//					- 2 * dt * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hz;
+//			}
+//		}
+//	}
 public:
-	void ExplicitTM() // Leapfrog scheme for time evolution of TM Mode
+	void ExplicitTM() // Leapfrog scheme for time evolution of TM Mode // NOT WORKING
 	{
 		initNewTimeMatrix();
 		double a = dt / delta;
@@ -452,26 +511,22 @@ public:
 		{
 			for (int y = 1; y < y_len - 1; y++)
 			{
-				//Update Hx
+				//Update Hx:
 				SimReg[t_last][x][y].Hx = SimReg[t_last - 2][x][y].Hx
-					- a * (SimReg[t_last - 1][x][y + 1].Ez - SimReg[t_last - 1][x][y - 1].Ez)
-					- 2 * dt * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hx;
+					- 2 * dt / SimReg[t_last - 1][x][y].mu / mu_0 * ((SimReg[t_last - 1][x][y + 1].Ez - SimReg[t_last - 1][x][y - 1].Ez) / (2 * delta) + SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hx);
 
-				//Update Hy
+				//Update Hy:
 				SimReg[t_last][x][y].Hy = SimReg[t_last - 2][x][y].Hy
-					+ a * (SimReg[t_last - 1][x + 1][y].Ez - SimReg[t_last - 1][x - 1][y].Ez)
-					- 2 * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hy;
+					+ 2 * dt / SimReg[t_last - 1][x][y].mu / mu_0 * ((SimReg[t_last - 1][x + 1][y].Ez - SimReg[t_last - 1][x - 1][y].Ez) / (2 * delta) - SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hy);
 
 				//Update Ez:
-				SimReg[t_last][x][y].Ez = SimReg[t_last - 2][x][y].Ez
-					+ a / (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0) * (SimReg[t_last - 1][x+1][y].Hy - SimReg[t_last - 1][x - 1][y].Hy)
-					- a / (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0) * (SimReg[t_last - 1][x][y+1].Hx - SimReg[t_last - 1][x][y - 1].Hx)
-					- 2 * dt / (SimReg[t_last - 1][x][y].eps * eps_0) * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ez;
+				SimReg[t_last][x][y].Ez = SimReg[t_last - 2][x][y].Ez 
+					+ 2 * dt / SimReg[t_last - 1][x][y].eps / eps_0 * ((SimReg[t_last - 1][x + 1][y].Hy - SimReg[t_last - 1][x - 1][y].Hy) / (2 * delta) - (SimReg[t_last - 1][x][y + 1].Hx - SimReg[t_last - 1][x][y - 1].Hx) / (2 * delta) - SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ez);
 			}
 		}
 	}
 public:
-	void ExplicitTE() // Leapfrog scheme for time evolution of TE Mode
+	void ExplicitTE() // Leapfrog scheme for time evolution of TE Mode //
 	{
 		initNewTimeMatrix();
 		double a = dt / delta;
@@ -479,28 +534,24 @@ public:
 		{
 			for (int y = 1; y < y_len - 1; y++)
 			{
-				//Update Ex
-				SimReg[t_last][x][y].Ex = SimReg[t_last - 2][x][y].Ex
-					+ a / (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0) * (SimReg[t_last - 1][x][y + 1].Hz - SimReg[t_last - 1][x][y - 1].Hz)
-					- 2 * dt / (SimReg[t_last - 1][x][y].eps * eps_0) * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ex;
+				//Update Ex:
+				SimReg[t_last][x][y].Ex = SimReg[t_last - 2][x][y].Ex 
+					+ 2 * dt / SimReg[t_last - 1][x][y].eps / eps_0 * ((SimReg[t_last - 1][x][y + 1].Hz - SimReg[t_last - 1][x][y - 1].Hz) / (2 * delta) - SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ex);
 
-				//Update Ey
+				//Update Ey:
 				SimReg[t_last][x][y].Ey = SimReg[t_last - 2][x][y].Ey
-					- a / (SimReg[t_last - 1][x][y].eps * eps_0 * SimReg[t_last - 1][x][y].mu * mu_0) * (SimReg[t_last - 1][x + 1][y].Hz - SimReg[t_last - 1][x - 1][y].Hz)
-					- 2 * dt / (SimReg[t_last - 1][x][y].eps * eps_0) * SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ey;
+					- 2 * dt / SimReg[t_last - 1][x][y].eps / eps_0 * ((SimReg[t_last - 1][x + 1][y].Hz - SimReg[t_last - 1][x - 1][y].Hz) / (2 * delta) + SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ey);
 
 				//Update Hz:
 				SimReg[t_last][x][y].Hz = SimReg[t_last - 2][x][y].Hz
-					+ a * (SimReg[t_last - 1][x][y + 1].Ex - SimReg[t_last - 1][x][y - 1].Ex)
-					- a * (SimReg[t_last - 1][x + 1][y].Ey - SimReg[t_last - 1][x - 1][y].Ey)
-					- 2 * dt * SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hz;
+					+ 2 * dt / SimReg[t_last - 1][x][y].mu / mu_0 * ((SimReg[t_last - 1][x][y + 1].Ex - SimReg[t_last - 1][x][y - 1].Ex) / (2 * delta) - (SimReg[t_last - 1][x + 1][y].Ey - SimReg[t_last - 1][x - 1][y].Ey) / (2 * delta) - SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hz);
 			}
 		}
 	}
 public:
 	void PICpos()
 	{
-		float* tmpE;
+		float tmpE[2];
 
 		// update positions
 		for (auto p : particles)
@@ -509,16 +560,19 @@ public:
 			p->pos[1] += p->v[1] * dt;
 		}
 		//update fields from particles
-		for (auto p : particles)
+		for (int x = 0; x < x_len; x++)
 		{
-			for (int x = 0; x < x_len; x++)
+			for (int y = 0; y < y_len; y++)
 			{
-				for (int y = 0; y < y_len; y++)
+				tmpE[0] = 0;
+				tmpE[1] = 0;
+				for (auto p : particles)
 				{
-					tmpE = p->getE(x, y);
-					this->SimReg[t_last][x][y].Ex = tmpE[0];
-					this->SimReg[t_last][x][y].Ey = tmpE[1];
+					tmpE[0] = p->getE(x, y)[0];
+					tmpE[1] = p->getE(x, y)[1];
 				}
+					this->SimReg[t_last][x][y].Ex += tmpE[0];
+					this->SimReg[t_last][x][y].Ey += tmpE[1];
 			}
 		}
 	}
@@ -533,5 +587,76 @@ public:
 			p->v[0] = vx_new;
 			p->v[1] = vy_new;
 		}
+	}
+public:
+	void demoYoung()
+	{
+		sourcePlaneWave(WlenToFrq(600e-9), 1e-20, "x", 12 * 0.05);
+		ExplicitTE();
+		PEC();
+		for (int i = -2; i < 3; i++)
+		{
+			for (int j = 0; j < int(y_len / 2 - 15); j++) {
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
+			}
+			for (int j = int(y_len / 2 - 5); j < int(y_len / 2 + 5); j++) {
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
+			}
+			for (int j = int(y_len / 2 + 15); j < y_len; j++) {
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
+			}
+			/*for (int j = 0; j < 95; j++) {
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
+			}
+			for (int j = 105; j < y_len; j++) {
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ex = 0;
+				SimReg[t_last][(int(x_len / 3) + i)][j].Ey = 0;
+			}*/
+		}
+	}
+public:
+	void demoCherenkov()
+	{
+		//if (particles.size() == 0)
+			//initNewParticle(el_charge, 1, 50, 50, 1, 0);
+
+		/*for (int i = int(x_len / 2)+10; i < x_len; i++)
+		{
+			for (int j = 0; j < y_len; j++)
+			{
+				SimReg[t_last][i][j].eps = 11.9;
+			}
+		}*/
+		sourceOnePoint(1, el_charge * 200, false);
+		ExplicitTM();
+		PEC();
+		for (int i = int(3 * x_len / 4); i < x_len; i++) {
+			for (int j = 0; j < y_len; j++) {
+				SimReg[t_last][i][j].eps = 10;
+			}
+		}
+		for (int i = 0; i < int(x_len / 4); i++) {
+			for (int j = 0; j < y_len; j++) {
+				SimReg[t_last][i][j].eps = 10;
+			}
+		}
+		/*for (int j = 0; j < int(y_len / 4); j++) {
+			for (int i = int(y_len / 4); i < int(3*y_len / 4); i++) {
+				SimReg[t_last][i][j].eps = 10;
+			}
+		}
+		for (int j = int(3*y_len / 4); j < y_len; j++) {
+			for (int i = int(y_len / 4); i < int(3 * y_len / 4); i++) {
+				SimReg[t_last][i][j].eps = 10;
+			}
+		}*/
+		//PICpos();
+		//PICvel();
+		//PBC();
+		//primitiveABC();
 	}
 };

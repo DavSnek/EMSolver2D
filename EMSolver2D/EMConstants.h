@@ -12,10 +12,10 @@ float me = 9.1093837e-31; // Electron mass [kg]
 float mp = 1.67262192e-27; // Proton mass [kg]
 
 //-----------------------------------CHARGES------------------------------------
-float e = 1.60217663e-19; // Electron charge [C]
+float el_charge = 1.60217663e-19; // Electron charge [C]
 
 //-------------------------------ELECTROMAGNETISM--------------------------------
-float mu_0 = 1;// 1.2566370612e-6; // Vacuum permeability [kg * m * s^-2 * A^-2]
+float mu_0  = 1;// 1.2566370612e-6; // Vacuum permeability [kg * m * s^-2 * A^-2]
 float eps_0 = 1;// 8.8541878128e-12;// Vacuum permittivity [s^4 * A^2 * kg^-1 * m^-3]
 float k = 1 / (4 * PI * eps_0); // Coulomb's constant [kg * m^3 * s^−2 * C^−2]
 float getVelocity(float beta) 

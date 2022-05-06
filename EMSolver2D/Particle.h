@@ -29,11 +29,11 @@ public:
 		float dy = y - pos[1];
 		//float r = sqrt(dx*dx + dy*dy)
 		if (abs(dx) >= cer) // if distance is greater than classical electron radius
-			E[0] = k * charge / (dx * dx) *dx / abs(dx);
+			E[0] = k * charge / (dx * dx + dy * dy) * dx / abs(dx);
 		else
 			E[0] = 0;
 		if (abs(dy) >= cer)
-			E[1] = k * charge / (dy * dy) *dy / abs(dy);
+			E[1] = k * charge / (dy * dy + dx *dx) * dy / abs(dy);
 		else
 			E[1] = 0;
 		return E;
