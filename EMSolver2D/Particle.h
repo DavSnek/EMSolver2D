@@ -17,14 +17,11 @@ public:
 			this->v[0] = vx;
 			this->v[1] = vy;
 		}
-	  //TODO:
-	  // 1. Function that returns Electric field at a distance from the particle. DONE
-	  // 2. Function that calculates magnetic field of moving charge
 public: 
 	float* getE(float x, float y)
 	{
 		// Calculates and returns Electric field at position [x,y].
-		float E[2];
+		float E[3]; // E = {Ex,Ey,Ez}
 		float dx = x - pos[0];
 		float dy = y - pos[1];
 		//float r = sqrt(dx*dx + dy*dy)
@@ -36,7 +33,22 @@ public:
 			E[1] = k * charge / (dy * dy + dx *dx) * dy / abs(dy);
 		else
 			E[1] = 0;
+		if (sqrt(dx*dx + dy*dy) >= cer)
+			E[2] = k * charge / (dy * dy + dx * dx);
+		else
+			E[2] = 0;
 		return E;
+	}
+public:
+	float getH(float x, float y, float mu_r)
+	{
+		// Calculates and returns Magnetic field of moving charge at position [x,y].
+		// In 2D only Hz exists (Vz = 0 & dz = 0).
+		float H;
+		float dx = x - pos[0];
+		float dy = y - pos[1];
+		H = charge / (4 * PI * mu_r) * (v[0] * dy - v[1] * dx) / (dx * dx + dy * dy);
+		return H;
 	}
 
 };

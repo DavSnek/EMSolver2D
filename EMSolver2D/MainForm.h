@@ -418,7 +418,7 @@ namespace EMSolver2D {
 		this->label3->Text = maxcol.ToString();
 		this->pictureBox1->Image = img;
 		Graphics^ test = Graphics::FromImage(this->pictureBox1->Image);
-		test->InterpolationMode = System::Drawing::Drawing2D::InterpolationMode::HighQualityBicubic;
+		//test->InterpolationMode = System::Drawing::Drawing2D::InterpolationMode::HighQualityBicubic;
 		test->Clear(this->pictureBox1->BackColor);
 		test->DrawImage(this->bmp, 0, 0, this->pictureBox1->Width, this->pictureBox1->Height);
 	}
@@ -428,7 +428,8 @@ namespace EMSolver2D {
 		//this->sol->PICpos();
 		//this->sol->ExplicitTE();
 		//this->sol->PICvel();
-		this->sol->demoCherenkov();
+		//this->sol->demoCherenkov();
+		this->sol->demoPIC();
 		//this->sol->PEC();
 		//this->sol->PBC();
 		//this->sol->primitiveABC();

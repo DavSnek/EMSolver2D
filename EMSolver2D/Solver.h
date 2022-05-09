@@ -95,7 +95,7 @@ public:
 		SimReg.push_back(tmpx);
 		//sourceOnePoint();
 
-		t_last ++;
+		t_last++;
 		t_end += dt;
 	}
 public:
@@ -157,37 +157,37 @@ public:
 		}
 	}
 public:
-	void sourceOnePoint(float omega, double amplitude, bool TE = true)
+	void sourceOnePoint(float x, float y, float omega, double amplitude, bool TE = true)
 	{
 		double src1 = amplitude * sin(6.28 * omega * t_end);
 		double src2 = amplitude * sin(6.28 * omega * t_end + delta * 6.28*omega/c);
 		if (TE)
 		{
-			SimReg[t_last][int(x_len / 2)][int(y_len / 2)].Hz = src1;
+			SimReg[t_last][int(x)][int(y)].Hz = src1;
 
-			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2 + 1)].Hz = src2;
-			SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2) - 1].Hz = src2;
-			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) - 1].Hz = src2;
-			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) + 1].Hz = src2;
+			SimReg[t_last][int(x) + 1][int(y + 1)].Hz = src2;
+			SimReg[t_last][int(x) - 1][int(y) - 1].Hz = src2;
+			SimReg[t_last][int(x) + 1][int(y) - 1].Hz = src2;
+			SimReg[t_last][int(x) + 1][int(y) + 1].Hz = src2;
 
-			SimReg[t_last][int(x_len / 2)][int(y_len / 2) + 1].Hz = src2;
-			SimReg[t_last][int(x_len / 2)][int(y_len / 2) - 1].Hz = src2;
-			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2)].Hz = src2;
-			SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2)].Hz = src2;
+			SimReg[t_last][int(x)][int(y) + 1].Hz = src2;
+			SimReg[t_last][int(x)][int(y) - 1].Hz = src2;
+			SimReg[t_last][int(x) + 1][int(y)].Hz = src2;
+			SimReg[t_last][int(x) - 1][int(y)].Hz = src2;
 		}
 		else
 		{
-			SimReg[t_last][int(x_len / 2)][int(y_len / 2)].Ez = src1;
+			SimReg[t_last][int(x)][int(y)].Ez = src1;
 
-			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2 + 1)].Ez = src2;
-			SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2) - 1].Ez = src2;
-			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) - 1].Ez = src2;
-			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2) + 1].Ez = src2;
+			SimReg[t_last][int(x) + 1][int(y) + 1].Ez = src2;
+			SimReg[t_last][int(x) - 1][int(y) - 1].Ez = src2;
+			SimReg[t_last][int(x) + 1][int(y) - 1].Ez = src2;
+			SimReg[t_last][int(x) + 1][int(y) + 1].Ez = src2;
 
-			SimReg[t_last][int(x_len / 2)][int(y_len / 2) + 1].Ez = src2;
-			SimReg[t_last][int(x_len / 2)][int(y_len / 2) - 1].Ez = src2;
-			SimReg[t_last][int(x_len / 2) + 1][int(y_len / 2)].Ez = src2;
-			SimReg[t_last][int(x_len / 2) - 1][int(y_len / 2)].Ez = src2;
+			SimReg[t_last][int(x)][int(y) + 1].Ez = src2;
+			SimReg[t_last][int(x)][int(y) - 1].Ez = src2;
+			SimReg[t_last][int(x) + 1][int(y)].Ez = src2;
+			SimReg[t_last][int(x) - 1][int(y)].Ez = src2;
 		}
 
 	}
@@ -506,7 +506,7 @@ public:
 	void ExplicitTM() // Leapfrog scheme for time evolution of TM Mode // NOT WORKING
 	{
 		initNewTimeMatrix();
-		double a = dt / delta;
+		//double a = dt / delta;
 		for (int x = 1; x < x_len - 1; x++)
 		{
 			for (int y = 1; y < y_len - 1; y++)
@@ -549,16 +549,56 @@ public:
 		}
 	}
 public:
+	void ExplicitTEM() // Leapfrog scheme for time evolution of TEM Mode //
+	{
+		initNewTimeMatrix();
+		double a = dt / delta;
+		for (int x = 1; x < x_len - 1; x++)
+		{
+			for (int y = 1; y < y_len - 1; y++)
+			{
+
+				//Update Hx:
+				SimReg[t_last][x][y].Hx = SimReg[t_last - 2][x][y].Hx
+					- 2 * dt / SimReg[t_last - 1][x][y].mu / mu_0 * ((SimReg[t_last - 1][x][y + 1].Ez - SimReg[t_last - 1][x][y - 1].Ez) / (2 * delta) + SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hx);
+
+				//Update Hy:
+				SimReg[t_last][x][y].Hy = SimReg[t_last - 2][x][y].Hy
+					+ 2 * dt / SimReg[t_last - 1][x][y].mu / mu_0 * ((SimReg[t_last - 1][x + 1][y].Ez - SimReg[t_last - 1][x - 1][y].Ez) / (2 * delta) - SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hy);
+
+				//Update Hz:
+				SimReg[t_last][x][y].Hz = SimReg[t_last - 2][x][y].Hz
+					+ 2 * dt / SimReg[t_last - 1][x][y].mu / mu_0 * ((SimReg[t_last - 1][x][y + 1].Ex - SimReg[t_last - 1][x][y - 1].Ex) / (2 * delta) - (SimReg[t_last - 1][x + 1][y].Ey - SimReg[t_last - 1][x - 1][y].Ey) / (2 * delta) - SimReg[t_last - 1][x][y].sigH * SimReg[t_last - 1][x][y].Hz);
+
+				//Update Ex:
+				SimReg[t_last][x][y].Ex = SimReg[t_last - 2][x][y].Ex
+					+ 2 * dt / SimReg[t_last - 1][x][y].eps / eps_0 * ((SimReg[t_last - 1][x][y + 1].Hz - SimReg[t_last - 1][x][y - 1].Hz) / (2 * delta) - SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ex);
+
+				//Update Ey:
+				SimReg[t_last][x][y].Ey = SimReg[t_last - 2][x][y].Ey
+					- 2 * dt / SimReg[t_last - 1][x][y].eps / eps_0 * ((SimReg[t_last - 1][x + 1][y].Hz - SimReg[t_last - 1][x - 1][y].Hz) / (2 * delta) + SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ey);
+
+				//Update Ez:
+				SimReg[t_last][x][y].Ez = SimReg[t_last - 2][x][y].Ez
+					+ 2 * dt / SimReg[t_last - 1][x][y].eps / eps_0 * ((SimReg[t_last - 1][x + 1][y].Hy - SimReg[t_last - 1][x - 1][y].Hy) / (2 * delta) - (SimReg[t_last - 1][x][y + 1].Hx - SimReg[t_last - 1][x][y - 1].Hx) / (2 * delta) - SimReg[t_last - 1][x][y].sigE * SimReg[t_last - 1][x][y].Ez);
+			}
+		}
+	}
+public:
 	void PICpos()
 	{
-		float tmpE[2];
-
 		// update positions
 		for (auto p : particles)
 		{
-			p->pos[0] += p->v[0] * dt;
-			p->pos[1] += p->v[1] * dt;
+			p->pos[0] += p->v[0] * dt / delta;
+			p->pos[1] += p->v[1] * dt / delta;
 		}
+	}
+public:
+	void PICdistribution()
+	{
+		float tmpE[3];
+		float tmpH;
 		//update fields from particles
 		for (int x = 0; x < x_len; x++)
 		{
@@ -566,26 +606,33 @@ public:
 			{
 				tmpE[0] = 0;
 				tmpE[1] = 0;
+				tmpE[2] = 0;
+				tmpH = 0;
 				for (auto p : particles)
 				{
 					tmpE[0] = p->getE(x, y)[0];
 					tmpE[1] = p->getE(x, y)[1];
-				}
+					tmpE[2] = p->getE(x, y)[2];
+					tmpH = p->getH(x, y, SimReg[t_last][x][y].mu);
+					this->SimReg[t_last-1][x][y].Ex += tmpE[0];
+					this->SimReg[t_last-1][x][y].Ey += tmpE[1];
+					this->SimReg[t_last-1][x][y].Ez += tmpE[2];
+					this->SimReg[t_last-1][x][y].Hz += tmpH;
 					this->SimReg[t_last][x][y].Ex += tmpE[0];
 					this->SimReg[t_last][x][y].Ey += tmpE[1];
+					this->SimReg[t_last][x][y].Ez += tmpE[2];
+					this->SimReg[t_last][x][y].Hz += tmpH;
+				}
 			}
 		}
 	}
 public:
 	void PICvel()
 	{
-		float vx_new, vy_new;
 		for (auto p : particles)
 		{
-			vx_new = p->v[0] + p->charge / p->mass * dt * SimReg[t_last - 1][int(p->pos[0])][int(p->pos[1])].Ex;
-			vy_new = p->v[1] + p->charge / p->mass * dt * SimReg[t_last - 1][int(p->pos[0])][int(p->pos[1])].Ey;
-			p->v[0] = vx_new;
-			p->v[1] = vy_new;
+			p->v[0] += p->charge / p->mass * dt * SimReg[t_last][int(p->pos[0])][int(p->pos[1])].Ex;
+			p->v[1] += p->charge / p->mass * dt * SimReg[t_last][int(p->pos[0])][int(p->pos[1])].Ey;
 		}
 	}
 public:
@@ -621,9 +668,39 @@ public:
 public:
 	void demoCherenkov()
 	{
-		//if (particles.size() == 0)
-			//initNewParticle(el_charge, 1, 50, 50, 1, 0);
+		if (particles.size() == 0) {
+			initNewParticle(el_charge, me, 10, 100, 0.7, 0);
+		}
 
+		for (int i = int(x_len/8); i < x_len; i++) {
+			for (int j = 0; j < y_len; j++) {
+				SimReg[t_last][i][j].eps = 12;
+				SimReg[t_last][i][j].mu = 1;
+			}
+		}
+		PICdistribution();
+		ExplicitTM();
+		PICvel();
+		PICpos();
+		PICdistribution();
+		PBC();
+	}
+public:
+	void demoCherenkov2()
+	{
+		if (particles.size() == 0) {
+			//initNewParticle(el_charge, me, 100, 100, 50, 0);
+			//initNewParticle(el_charge, me, 80, 100, 50, 0);
+			//initNewParticle(el_charge, me, 60, 100, 50, 0);
+			//initNewParticle(el_charge, me, 40, 100, 50, 0);
+			initNewParticle(el_charge, me, 20, 100, 0.5, 0);
+		}
+		for (int i = 0; i < x_len; i++) {
+			for (int j = 103; j < y_len; j++) {
+				SimReg[t_last][i][j].eps = 12;
+				SimReg[t_last][i][j].mu = 1;
+			}
+		}
 		/*for (int i = int(x_len / 2)+10; i < x_len; i++)
 		{
 			for (int j = 0; j < y_len; j++)
@@ -631,19 +708,20 @@ public:
 				SimReg[t_last][i][j].eps = 11.9;
 			}
 		}*/
-		sourceOnePoint(1, el_charge * 200, false);
+		//sourceOnePoint(1, el_charge * 200, false);
 		ExplicitTM();
-		PEC();
-		for (int i = int(3 * x_len / 4); i < x_len; i++) {
-			for (int j = 0; j < y_len; j++) {
-				SimReg[t_last][i][j].eps = 10;
-			}
-		}
+		PICpos();
+		PICvel();
+		PBC();
+		//ExplicitTEM();
+		//ExplicitTE();
+		//PEC();
+		/*
 		for (int i = 0; i < int(x_len / 4); i++) {
 			for (int j = 0; j < y_len; j++) {
 				SimReg[t_last][i][j].eps = 10;
 			}
-		}
+		}*/
 		/*for (int j = 0; j < int(y_len / 4); j++) {
 			for (int i = int(y_len / 4); i < int(3*y_len / 4); i++) {
 				SimReg[t_last][i][j].eps = 10;
@@ -654,9 +732,26 @@ public:
 				SimReg[t_last][i][j].eps = 10;
 			}
 		}*/
-		//PICpos();
-		//PICvel();
-		//PBC();
+		
+		
 		//primitiveABC();
+	}
+public:
+	void demoPIC()
+	{
+		if (particles.size() == 0) {
+			initNewParticle(el_charge, me, 110, 110, 0, 0);
+			initNewParticle(el_charge, me, 90, 90, 0, 0);
+			initNewParticle(el_charge, me, 110, 90, 0, 0);
+			initNewParticle(el_charge, me, 90, 110, 0, 0);
+			//initNewParticle(10000000*el_charge, 1000*me, 100, 100, 0, 0);
+		}
+		sourceOnePoint((x_len / 2), (y_len / 2), 0.5, 7e6*el_charge, true);
+		sourceOnePoint((x_len / 2), (y_len / 2), 0.5, 7e6*el_charge, false);
+		PICpos();
+		ExplicitTEM();
+		PICvel();
+		PBC();
+		//PICdistribution();
 	}
 };
