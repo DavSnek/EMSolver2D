@@ -693,7 +693,7 @@ public:
 			//initNewParticle(el_charge, me, 80, 100, 50, 0);
 			//initNewParticle(el_charge, me, 60, 100, 50, 0);
 			//initNewParticle(el_charge, me, 40, 100, 50, 0);
-			initNewParticle(el_charge, me, 20, 100, 0.5, 0);
+			//initNewParticle(el_charge, me, 20, 100, 0.5, 0);
 		}
 		for (int i = 0; i < x_len; i++) {
 			for (int j = 103; j < y_len; j++) {
@@ -708,10 +708,10 @@ public:
 				SimReg[t_last][i][j].eps = 11.9;
 			}
 		}*/
-		//sourceOnePoint(1, el_charge * 200, false);
+		sourceOnePoint(100,100,1, el_charge * 200, false);
 		ExplicitTM();
-		PICpos();
-		PICvel();
+		//PICpos();
+		//PICvel();
 		PBC();
 		//ExplicitTEM();
 		//ExplicitTE();
@@ -753,5 +753,26 @@ public:
 		PICvel();
 		PBC();
 		//PICdistribution();
+	}
+public:
+	void demoCDR()
+	{
+		if (particles.size() == 0) {
+			initNewParticle(1000*el_charge, me, x_len-5, 50, 0.8, 0);
+		}
+
+		for (int i = 0; i < x_len; i++) {
+			for (int j = 53; j < y_len; j++) {
+				SimReg[t_last][i][j].eps = 2.5;
+				SimReg[t_last][i][j].mu = 1;
+			}
+		}
+
+		PICdistribution();
+		ExplicitTM();
+		PICvel();
+		PICpos();
+		PICdistribution();
+		PBC();
 	}
 };

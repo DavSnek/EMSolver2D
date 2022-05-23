@@ -428,8 +428,9 @@ namespace EMSolver2D {
 		//this->sol->PICpos();
 		//this->sol->ExplicitTE();
 		//this->sol->PICvel();
-		//this->sol->demoCherenkov();
-		this->sol->demoPIC();
+		//this->sol->demoCherenkov2();
+		this->sol->demoCDR();
+		//this->sol->demoPIC();
 		//this->sol->PEC();
 		//this->sol->PBC();
 		//this->sol->primitiveABC();
