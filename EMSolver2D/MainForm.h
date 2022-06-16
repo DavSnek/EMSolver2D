@@ -3,6 +3,7 @@
 #include <string>
 #include "EMConstants.h"
 #include "Particle.h"
+#include <cmath>
 
 namespace EMSolver2D {
 
@@ -49,6 +50,20 @@ namespace EMSolver2D {
 	public:System::Drawing::Bitmap^ img;
 	private: double fieldMax = 1e-50;
 
+	// coordinates and params for measurment:
+	private: bool measurement = false;
+	private: bool anchor1 = false;
+	private: bool anchor2 = false;
+	private: bool anchor3 = false;
+	private: int m_x1 = 0;
+	private: int m_y1 = 0;
+	private: int m_x2 = 0;
+	private: int m_y2 = 0;
+	private: int m_x3 = 0;
+	private: int m_y3 = 0;
+
+
+
 	private: System::Windows::Forms::PictureBox^ pictureBox1;
 	private: System::Windows::Forms::Label^ label1;
 	private: System::Windows::Forms::Label^ label2;
@@ -60,6 +75,9 @@ namespace EMSolver2D {
 	private: System::Windows::Forms::Label^ label3;
 	private: System::Windows::Forms::TrackBar^ trackBar2;
 	private: System::Windows::Forms::ComboBox^ comboBox1;
+	private: System::Windows::Forms::Label^ label4;
+	private: System::Windows::Forms::Label^ label5;
+	private: System::Windows::Forms::Button^ button3;
 	public:
 	private: System::ComponentModel::IContainer^ components;
 
@@ -89,6 +107,9 @@ namespace EMSolver2D {
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->trackBar2 = (gcnew System::Windows::Forms::TrackBar());
 			this->comboBox1 = (gcnew System::Windows::Forms::ComboBox());
+			this->label4 = (gcnew System::Windows::Forms::Label());
+			this->label5 = (gcnew System::Windows::Forms::Label());
+			this->button3 = (gcnew System::Windows::Forms::Button());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->trackBar2))->BeginInit();
@@ -97,7 +118,7 @@ namespace EMSolver2D {
 			// pictureBox1
 			// 
 			this->pictureBox1->BackColor = System::Drawing::Color::Gainsboro;
-			this->pictureBox1->BackgroundImageLayout = System::Windows::Forms::ImageLayout::Zoom;
+			this->pictureBox1->BackgroundImageLayout = System::Windows::Forms::ImageLayout::None;
 			this->pictureBox1->Location = System::Drawing::Point(0, 62);
 			this->pictureBox1->Margin = System::Windows::Forms::Padding(2);
 			this->pictureBox1->Name = L"pictureBox1";
@@ -105,6 +126,7 @@ namespace EMSolver2D {
 			this->pictureBox1->TabIndex = 0;
 			this->pictureBox1->TabStop = false;
 			this->pictureBox1->Click += gcnew System::EventHandler(this, &MainForm::pictureBox1_Click);
+			this->pictureBox1->MouseClick += gcnew System::Windows::Forms::MouseEventHandler(this, &MainForm::OnMouseClick);
 			// 
 			// label1
 			// 
@@ -204,11 +226,42 @@ namespace EMSolver2D {
 			this->comboBox1->TabIndex = 10;
 			this->comboBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &MainForm::comboBox1_SelectedIndexChanged);
 			// 
+			// label4
+			// 
+			this->label4->Location = System::Drawing::Point(0, 0);
+			this->label4->Name = L"label4";
+			this->label4->Size = System::Drawing::Size(100, 23);
+			this->label4->TabIndex = 14;
+			// 
+			// label5
+			// 
+			this->label5->AutoSize = true;
+			this->label5->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+				static_cast<System::Byte>(238)));
+			this->label5->Location = System::Drawing::Point(596, 170);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(60, 24);
+			this->label5->TabIndex = 12;
+			this->label5->Text = L"label5";
+			// 
+			// button3
+			// 
+			this->button3->Location = System::Drawing::Point(573, 132);
+			this->button3->Name = L"button3";
+			this->button3->Size = System::Drawing::Size(107, 35);
+			this->button3->TabIndex = 13;
+			this->button3->Text = L"Measure Angle";
+			this->button3->UseVisualStyleBackColor = true;
+			this->button3->Click += gcnew System::EventHandler(this, &MainForm::button3_Click);
+			// 
 			// MainForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1155, 687);
+			this->Controls->Add(this->button3);
+			this->Controls->Add(this->label5);
+			this->Controls->Add(this->label4);
 			this->Controls->Add(this->comboBox1);
 			this->Controls->Add(this->trackBar2);
 			this->Controls->Add(this->label3);
@@ -231,7 +284,41 @@ namespace EMSolver2D {
 
 		}
 #pragma endregion
+	private: System::Void OnMouseClick(System::Object^ sender, MouseEventArgs^ e) {
+		if (!anchor1 && !anchor2 && !anchor3)
+		{
+			m_x1 = e->X;
+			m_y1 = e->Y;
+			anchor1 = true;
+		}
+		else if (anchor1 && !anchor2 && !anchor3)
+		{
+			m_x2 = e->X;
+			m_y2 = e->Y;
+			anchor2 = true;
+		}
+
+		else if (anchor1 && anchor2 && !anchor3)
+		{
+			m_x3 = e->X;
+			m_y3 = e->Y;
+
+			anchor1 = false;
+			anchor2 = false;
+			anchor3 = false;
+		}
+		else
+		{
+			anchor1 = false;
+			anchor2 = false;
+			anchor3 = false;
+		}
+	
+	}
 	private: System::Void pictureBox1_Click(System::Object^ sender, System::EventArgs^ e) {
+		//MouseEventArgs^ me = e;
+		//Point coords = ;
+		
 	
 	}
 	private: System::Void label1_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -418,9 +505,37 @@ namespace EMSolver2D {
 		this->label3->Text = maxcol.ToString();
 		this->pictureBox1->Image = img;
 		Graphics^ test = Graphics::FromImage(this->pictureBox1->Image);
-		//test->InterpolationMode = System::Drawing::Drawing2D::InterpolationMode::HighQualityBicubic;
+		test->InterpolationMode = System::Drawing::Drawing2D::InterpolationMode::HighQualityBicubic;
 		test->Clear(this->pictureBox1->BackColor);
-		test->DrawImage(this->bmp, 0, 0, this->pictureBox1->Width, this->pictureBox1->Height);
+		test->DrawImage(this->bmp, 0, 0, this->img->Width, this->img->Height);
+		if (measurement)
+		{
+			System::Drawing::Pen^ orangePen = gcnew System::Drawing::Pen(System::Drawing::Color::DarkOrange, 2.0f);
+			System::Drawing::Pen^ blackPen = gcnew System::Drawing::Pen(System::Drawing::Color::Black, 2.0f);
+			System::Drawing::Pen^ greenPen = gcnew System::Drawing::Pen(System::Drawing::Color::ForestGreen, 2.0f);
+									
+						
+			float start_angle = 180 / PI * acos((m_x3-m_x2) / (sqrt((m_x3 - m_x2) * (m_x3 - m_x2) + ((m_y3 - m_y2) * (m_y3 - m_y2))))); // in degrees
+			float sweep_angle = 180 / PI * acos(((m_x3-m_x2) * (m_x1-m_x2) + (m_y3-m_y2) * (m_y1-m_y2)) / ((sqrt((m_x1 - m_x2) * (m_x1 - m_x2) + ((m_y1 - m_y2) * (m_y1 - m_y2)))) * (sqrt((m_x3 - m_x2) * (m_x3 - m_x2) + ((m_y3 - m_y2) * (m_y3 - m_y2))))));// in degrees
+			if (m_y3 < m_y2 && m_y1 < m_y2)
+			{ 
+				start_angle *= -1; 
+				sweep_angle *= -1;
+			}
+			if (m_x3 > m_x2 && m_x1 > m_x2)
+			{
+				start_angle *= 1;
+				sweep_angle *= -1;
+			}
+			this->label5->Text = sweep_angle.ToString();
+			
+			test->DrawLine(greenPen, m_x1, m_y1, m_x2, m_y2);
+			test->DrawLine(orangePen,m_x2,m_y2,m_x3,m_y3);
+			test->DrawEllipse(blackPen, m_x2 - 5, m_y2 - 5, 10, 10);
+			test->DrawEllipse(greenPen, m_x1 - 5, m_y1 - 5, 10, 10);
+			test->DrawEllipse(orangePen, m_x3 - 5, m_y3 - 5, 10, 10);
+			test->DrawArc(blackPen, m_x2 - 20, m_y2 - 20, 40, 40, int(start_angle), int(sweep_angle));
+		}
 	}
 	private: System::Void timer1_Tick(System::Object^ sender, System::EventArgs^ e) {
 		//this->sol->sourceOnePoint(10,1);
@@ -429,7 +544,8 @@ namespace EMSolver2D {
 		//this->sol->ExplicitTE();
 		//this->sol->PICvel();
 		//this->sol->demoCherenkov2();
-		this->sol->demoCDR();
+		//this->sol->demoCDR();
+		this->sol->demoGauss();
 		//this->sol->demoPIC();
 		//this->sol->PEC();
 		//this->sol->PBC();
@@ -443,6 +559,26 @@ namespace EMSolver2D {
 
 	private: System::Void comboBox1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
 		this->fieldMax = 0;
+	}
+	private: System::Void button3_Click(System::Object^ sender, System::EventArgs^ e) {
+		if (measurement)
+		{
+			this->trackBar1->Value++;
+			this->trackBar1->Value--;
+			m_x1 = 0;
+			m_x2 = 0;
+			m_x3 = 0;
+			m_y1 = 0;
+			m_y2 = 0;
+			m_y3 = 0;
+			measurement = false;
+		}
+		else
+		{
+			this->trackBar1->Value++;
+			this->trackBar1->Value--;
+			measurement = true;
+		}
 	}
 };
 }

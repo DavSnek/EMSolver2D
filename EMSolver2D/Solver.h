@@ -160,7 +160,8 @@ public:
 	void sourceOnePoint(float x, float y, float omega, double amplitude, bool TE = true)
 	{
 		double src1 = amplitude * sin(6.28 * omega * t_end);
-		double src2 = amplitude * sin(6.28 * omega * t_end + delta * 6.28*omega/c);
+		double src2 = amplitude * sin(6.28 * omega * t_end + delta * 6.28 * omega / c);
+		double src3 = amplitude * sin(6.28 * omega * t_end + sqrt(2)*delta * 6.28*omega/c);
 		if (TE)
 		{
 			SimReg[t_last][int(x)][int(y)].Hz = src1;
@@ -168,12 +169,12 @@ public:
 			SimReg[t_last][int(x) + 1][int(y + 1)].Hz = src2;
 			SimReg[t_last][int(x) - 1][int(y) - 1].Hz = src2;
 			SimReg[t_last][int(x) + 1][int(y) - 1].Hz = src2;
-			SimReg[t_last][int(x) + 1][int(y) + 1].Hz = src2;
+			SimReg[t_last][int(x) - 1][int(y) + 1].Hz = src2;
 
-			SimReg[t_last][int(x)][int(y) + 1].Hz = src2;
-			SimReg[t_last][int(x)][int(y) - 1].Hz = src2;
-			SimReg[t_last][int(x) + 1][int(y)].Hz = src2;
-			SimReg[t_last][int(x) - 1][int(y)].Hz = src2;
+			SimReg[t_last][int(x)][int(y) + 1].Hz = src3;
+			SimReg[t_last][int(x)][int(y) - 1].Hz = src3;
+			SimReg[t_last][int(x) + 1][int(y)].Hz = src3;
+			SimReg[t_last][int(x) - 1][int(y)].Hz = src3;
 		}
 		else
 		{
@@ -182,15 +183,55 @@ public:
 			SimReg[t_last][int(x) + 1][int(y) + 1].Ez = src2;
 			SimReg[t_last][int(x) - 1][int(y) - 1].Ez = src2;
 			SimReg[t_last][int(x) + 1][int(y) - 1].Ez = src2;
-			SimReg[t_last][int(x) + 1][int(y) + 1].Ez = src2;
+			SimReg[t_last][int(x) - 1][int(y) + 1].Ez = src2;
 
-			SimReg[t_last][int(x)][int(y) + 1].Ez = src2;
-			SimReg[t_last][int(x)][int(y) - 1].Ez = src2;
-			SimReg[t_last][int(x) + 1][int(y)].Ez = src2;
-			SimReg[t_last][int(x) - 1][int(y)].Ez = src2;
+			SimReg[t_last][int(x)][int(y) + 1].Ez = src3;
+			SimReg[t_last][int(x)][int(y) - 1].Ez = src3;
+			SimReg[t_last][int(x) + 1][int(y)].Ez = src3;
+			SimReg[t_last][int(x) - 1][int(y)].Ez = src3;
 		}
 
 	}
+public:
+	void sourceOnePointOneOscilation(float x, float y, float f, double amplitude, bool TE = true)
+	{
+		double src1, src2;
+		src1 = amplitude * sin(6.28 * f * t_end);
+		src2 = amplitude * sin(6.28 * f * t_end + delta * 6.28 * f / c);
+		if (t_end < 1 / f) 
+		{
+			if (TE)
+			{
+				SimReg[t_last][int(x)][int(y)].Hz = src1;
+
+				SimReg[t_last][int(x) + 1][int(y + 1)].Hz = src2;
+				SimReg[t_last][int(x) - 1][int(y) - 1].Hz = src2;
+				SimReg[t_last][int(x) + 1][int(y) - 1].Hz = src2;
+				SimReg[t_last][int(x) - 1][int(y) + 1].Hz = src2;
+
+				SimReg[t_last][int(x)][int(y) + 1].Hz = src2;
+				SimReg[t_last][int(x)][int(y) - 1].Hz = src2;
+				SimReg[t_last][int(x) + 1][int(y)].Hz = src2;
+				SimReg[t_last][int(x) - 1][int(y)].Hz = src2;
+			}
+			else
+			{
+				SimReg[t_last][int(x)][int(y)].Ez = src1;
+
+				SimReg[t_last][int(x) + 1][int(y) + 1].Ez = src2;
+				SimReg[t_last][int(x) - 1][int(y) - 1].Ez = src2;
+				SimReg[t_last][int(x) + 1][int(y) - 1].Ez = src2;
+				SimReg[t_last][int(x) - 1][int(y) + 1].Ez = src2;
+
+				SimReg[t_last][int(x)][int(y) + 1].Ez = src2;
+				SimReg[t_last][int(x)][int(y) - 1].Ez = src2;
+				SimReg[t_last][int(x) + 1][int(y)].Ez = src2;
+				SimReg[t_last][int(x) - 1][int(y)].Ez = src2;
+			}
+		}
+
+	}
+
 public:
 	void PEC()
 	{
@@ -240,56 +281,94 @@ public:
 public:
 	void primitiveABC()
 	{
+		int thickness = 11;
 		float mult = 0.25;
-		for (int j = 0; j < 10; j++)
+		float mult2 = 0.25;
+		for (int j = 0; j < thickness; j++)
 			for (int i = 0; i < x_len; i++)
 			{
-				SimReg[t_last][i][j].sigE = mult * (10 - j);
-				SimReg[t_last][i][j].eps *=  1 + mult * (10 - j);
-				SimReg[t_last][i][j].sigH = mult * (10 - j);
-				SimReg[t_last][i][j].mu *= 1 + mult * (10 - j);
-				SimReg[t_last][i][y_len - 1 - j].sigE = mult * (10 - j);
-				SimReg[t_last][i][y_len - 1 - j].eps *= 1 + mult * (10 - j);
-				SimReg[t_last][i][y_len - 1 - j].sigH = mult * (10 - j);
-				SimReg[t_last][i][y_len - 1 - j].mu *= 1 + mult * (10 - j);
+				SimReg[t_last][i][j].sigE = mult * (thickness - j);
+				SimReg[t_last][i][j].eps *=  1 + mult * (thickness - j);
+				SimReg[t_last][i][j].sigH = mult * (thickness - j);
+				SimReg[t_last][i][j].mu *= 1 + mult * (thickness - j);
+				SimReg[t_last][i][y_len - 1 - j].sigE = mult * (thickness - j);
+				SimReg[t_last][i][y_len - 1 - j].eps *= 1 + mult * (thickness - j);
+				SimReg[t_last][i][y_len - 1 - j].sigH = mult * (thickness - j);
+				SimReg[t_last][i][y_len - 1 - j].mu *= 1 + mult * (thickness - j);
 			}
-		for (int i = 0; i < 10; i++)
-			for (int j = 0; j < y_len; j++)
+		for (int i = 0; i < thickness; i++)
+			for (int j = thickness; j < y_len-thickness; j++)
 			{
-				SimReg[t_last][i][j].sigE = mult * (10 - i);
-				SimReg[t_last][i][j].eps *= 1 + mult * (10 - i);
-				SimReg[t_last][i][j].sigH = mult * (10 - i);
-				SimReg[t_last][i][j].mu *= 1 + mult * (10 - i);
-				SimReg[t_last][x_len - 1 - i][j].sigE = mult * (10 - i);
-				SimReg[t_last][x_len - 1 - i][j].eps *= 1 + mult * (10 - i);
-				SimReg[t_last][x_len - 1 - i][j].sigH = mult * (10 - i);
-				SimReg[t_last][x_len - 1 - i][j].mu *= 1 + mult * (10 - i);
+				SimReg[t_last][i][j].sigE = mult * (thickness - i);
+				SimReg[t_last][i][j].eps *= 1 + mult * (thickness - i);
+				SimReg[t_last][i][j].sigH = mult * (thickness - i);
+				SimReg[t_last][i][j].mu *= 1 + mult * (thickness - i);
+				SimReg[t_last][x_len - 1 - i][j].sigE = mult * (thickness - i);
+				SimReg[t_last][x_len - 1 - i][j].eps *= 1 + mult * (thickness - i);
+				SimReg[t_last][x_len - 1 - i][j].sigH = mult * (thickness - i);
+				SimReg[t_last][x_len - 1 - i][j].mu *= 1 + mult * (thickness - i);
 			}
 
-		for (int j = 0; j < 2; j++)
+		for (int j = 0; j < 3; j++)
 			for (int i = 0; i < x_len; i++)
 			{
-				SimReg[t_last][i][j].Hz *= 0.2;
-				SimReg[t_last][i][j].Ex *= 0.2;
-				SimReg[t_last][i][j].Ey *= 0.2;
-				SimReg[t_last][i][y_len - 1 - j].Hz *= 0.2;
-				SimReg[t_last][i][y_len - 1 - j].Ex *= 0.2;
-				SimReg[t_last][i][y_len - 1 - j].Ey *= 0.2;
-				//SimReg[t_last][i][j].Ey = 0;
-				//SimReg[t_last][i][y_len - 1 - j].Ey = 0;
+				SimReg[t_last][i][j].Hx *= mult2;
+				SimReg[t_last][i][j].Hy *= mult2;
+				SimReg[t_last][i][j].Hz *= mult2;
+				SimReg[t_last][i][j].Ex *= mult2;
+				SimReg[t_last][i][j].Ey *= mult2;
+				SimReg[t_last][i][j].Ez *= mult2;
+				SimReg[t_last][i][y_len - 1 - j].Hx *= mult2;
+				SimReg[t_last][i][y_len - 1 - j].Hy *= mult2;
+				SimReg[t_last][i][y_len - 1 - j].Hz *= mult2;
+				SimReg[t_last][i][y_len - 1 - j].Ex *= mult2;
+				SimReg[t_last][i][y_len - 1 - j].Ey *= mult2;
+				SimReg[t_last][i][y_len - 1 - j].Ez *= mult2;
+				//SimReg[t_last][i][j].Ex = 0;
+				//SimReg[t_last][i][y_len - 1 - j].Ex = 0;
 			}
-		for (int i = 0; i < 2; i++)
-			for (int j = 0; j < y_len; j++)
+		for (int i = 0; i < 3; i++)
+			for (int j = 3; j < y_len-3; j++)
 			{
-				SimReg[t_last][i][j].Hz *= 0.2;
-				SimReg[t_last][i][j].Ex *= 0.2;
-				SimReg[t_last][i][j].Ey *= 0.2;
-				SimReg[t_last][y_len - 1 - i][j].Hz *= 0.2;
-				SimReg[t_last][y_len - 1 - i][j].Ex *= 0.2;
-				SimReg[t_last][y_len - 1 - i][j].Ey *= 0.2;
+				SimReg[t_last][i][j].Hx *= mult2;
+				SimReg[t_last][i][j].Hy *= mult2;
+				SimReg[t_last][i][j].Hz *= mult2;
+				SimReg[t_last][i][j].Ex *= mult2;
+				SimReg[t_last][i][j].Ey *= mult2;
+				SimReg[t_last][i][j].Ez *= mult2;
+				SimReg[t_last][y_len - 1 - i][j].Hx *= mult2;
+				SimReg[t_last][y_len - 1 - i][j].Hy *= mult2;
+				SimReg[t_last][y_len - 1 - i][j].Hz *= mult2;
+				SimReg[t_last][y_len - 1 - i][j].Ex *= mult2;
+				SimReg[t_last][y_len - 1 - i][j].Ey *= mult2;
+				SimReg[t_last][y_len - 1 - i][j].Ez *= mult2;
 				//SimReg[t_last][i][j].Ey = 0;
 				//SimReg[t_last][y_len - 1 - i][j].Ey = 0;
 			}
+		for (int i = 0; i < x_len; i++)
+		for (int j = 0; j < 2; j++)
+		{
+			SimReg[t_last][i][j].Ey = 0;
+			SimReg[t_last][i][y_len - 1 - j].Ey = 0;
+			SimReg[t_last][i][j].Ez = 0;
+			SimReg[t_last][i][y_len - 1 - j].Ez = 0;
+			SimReg[t_last][i][j].Hy = 0;
+			SimReg[t_last][i][y_len - 1 - j].Hy = 0;
+			SimReg[t_last][i][j].Hz = 0;
+			SimReg[t_last][i][y_len - 1 - j].Hz = 0;
+		}
+		for (int j = 0; j < y_len; j++)
+		for (int i = 0; i < 2; i ++)
+		{
+			SimReg[t_last][i][j].Ey = 0;
+			SimReg[t_last][y_len - 1 - i][j].Ey = 0;
+			SimReg[t_last][i][j].Ez = 0;
+			SimReg[t_last][y_len - 1 - i][j].Ez = 0;
+			SimReg[t_last][i][j].Hy = 0;
+			SimReg[t_last][y_len - 1 - i][j].Hy = 0;
+			SimReg[t_last][i][j].Hz = 0;
+			SimReg[t_last][y_len - 1 - i][j].Hz = 0;
+		}
 	}
 public:
 	void naiveattenuation()
@@ -774,5 +853,13 @@ public:
 		PICpos();
 		PICdistribution();
 		PBC();
+	}
+public:
+	void demoGauss()
+	{
+		sourceOnePoint((x_len / 2), (y_len / 2), 0.5, 7e6 * el_charge, true);
+		//sourcePlaneWave(4, 7e6 * el_charge,"x", 1, true);
+		ExplicitTE();
+		primitiveABC();
 	}
 };
